@@ -1,0 +1,9 @@
+Typical Usage:
+
+init_nmallocator() - call at the start of the program initialization, passing it the numa node
+where memory should be allocated throughout the life of the program. Returns 0 on success,
+check the return value of the call before proceeding with memory allocation.
+
+nmalloc() - zeroed out memory is handed over to the caller for a successful allocation
+
+nmfree() - user memory freed and zeroed out to prevent information leak
