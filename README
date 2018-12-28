@@ -1,3 +1,9 @@
+Build:
+sudo make clean; sudo make
+
+Linking with the library:
+Use -lnmem as a linker flag to the application
+
 Typical Usage:
 
 init_nmallocator() - call at the start of the program initialization, passing it the numa node
