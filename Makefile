@@ -1,5 +1,5 @@
 CC = gcc
-CFALGS = -fPIC -Wall -Wextra -O2
+CFLAGS = -fPIC -Wall -Wextra -O2
 LDFLAGS = -lnuma -shared -soname
 TARGET_LIB = libnmem.so
 TARGET_PATH = /usr/lib/x86_64-linux-gnu/

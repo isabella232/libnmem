@@ -1,9 +1,9 @@
+#include "nmem.h"
+
 #include <stdio.h>
-#include <stdlib.h>
 #include <stddef.h>
 #include <assert.h>
 #include <numa.h>
-#include "nmem.h"
 
 static int numa_node = -1;
 
@@ -35,7 +35,9 @@ void *nmalloc(size_t size)
     size_t total_size = size + sizeof(numa_mem_t);
     
     void *mem = numa_alloc_onnode(size + total_size, numa_node);
-    assert(mem);
+    if (!mem) {
+	return NULL;
+    }
 
     void *buffer = mem + sizeof(numa_mem_t);
     numa_mem_t *nmem = (numa_mem_t *) mem;
@@ -55,4 +57,27 @@ void nmfree(void *buffer)
     size = mem->size;
     memset(buffer, 0, size);
     numa_free(mem, size);
+}
+
+/* Reallocate memory for given size */
+void *nmrealloc(void *ptr, size_t size)
+{
+    if (!ptr) {
+	return nmalloc(size);
+    }
+
+    void *buffer = nmalloc(size);
+    if (!buffer) {
+	return NULL;
+    }
+
+    numa_mem_t *mem = (numa_mem_t *) (ptr - sizeof(numa_mem_t));
+    if (mem->size > size) {
+	memcpy(buffer, ptr, size);
+    } else {
+	memcpy(buffer, ptr, mem->size);
+    }
+    nmfree(ptr);
+    ptr = buffer;
+    return buffer;
 }
