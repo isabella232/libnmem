@@ -9,7 +9,6 @@ static int numa_node = -1;
 
 typedef struct numa_mem {
     size_t size;
-    void *mem;
 } numa_mem_t;
 
 /* Init the numa memory allocator */
@@ -20,7 +19,7 @@ int init_nmallocator(int node)
         goto err;
     }
     /* Ensure that the asked node is less than available numa nodes */
-    if (node > numa_max_node()) {
+    if (node < 0 || node > numa_max_node()) {
 	ret = -1;
 	goto err;
     }
@@ -42,9 +41,8 @@ void *nmalloc(size_t size)
     void *buffer = mem + sizeof(numa_mem_t);
     numa_mem_t *nmem = (numa_mem_t *) mem;
     nmem->size = total_size;
-    nmem->mem = buffer;
-    memset(nmem->mem, 0, size);
-    return nmem->mem;
+    memset(buffer, 0, size);
+    return buffer;
 }
 
 /* Free memory and zero it out */
@@ -55,7 +53,7 @@ void nmfree(void *buffer)
     numa_mem_t *mem = (numa_mem_t *) (buffer - sizeof(numa_mem_t));
     assert(mem->size > 0);
     size = mem->size;
-    memset(buffer, 0, size);
+    memset(mem, 0, size);
     numa_free(mem, size);
 }
 
