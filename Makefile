@@ -2,7 +2,16 @@ CC = gcc
 CFLAGS = -fPIC -Wall -Wextra -O2
 LDFLAGS = -lnuma -shared -soname
 TARGET_LIB = libnmem.so
+OS = $(shell lsb_release -si)
+ifeq ($(OS), Ubuntu)
 TARGET_PATH = /usr/lib/x86_64-linux-gnu/
+else
+ifeq ($(OS), RedHatEnterpriseServer)
+TARGET_PATH = /usr/lib64/
+else
+TARGET_PATH = /usr/lib/
+endif
+endif
 TARGET_HDR_PATH = /usr/include
 SRCS = nmem.c
 LIBHDR = nmem.h
