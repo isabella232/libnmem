@@ -7,8 +7,11 @@
 
 static int numa_node = -1;
 
+#define GUARD_PATTERN (0x8D8D8D8D)
+
 typedef struct numa_mem {
     size_t size;
+    unsigned int own;
 } numa_mem_t;
 
 /* Init the numa memory allocator */
@@ -41,6 +44,7 @@ void *nmalloc(size_t size)
     void *buffer = mem + sizeof(numa_mem_t);
     numa_mem_t *nmem = (numa_mem_t *) mem;
     nmem->size = total_size;
+    nmem->own = GUARD_PATTERN;
     memset(buffer, 0, size);
     return buffer;
 }
@@ -50,9 +54,17 @@ void nmfree(void *buffer)
 {
     size_t size;
 
+    if (!buffer) {
+        return;
+    }
     numa_mem_t *mem = (numa_mem_t *) (buffer - sizeof(numa_mem_t));
-    assert(mem->size > 0);
     size = mem->size;
+    if (mem->own != GUARD_PATTERN) {
+	/* Not our memory! */
+	printf("Passed non numa memory to nmfree!\n");
+	assert(0);
+	return;
+    }
     memset(mem, 0, size);
     numa_free(mem, size);
 }
