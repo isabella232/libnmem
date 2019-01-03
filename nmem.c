@@ -5,7 +5,19 @@
 #include <assert.h>
 #include <numa.h>
 
-static int numa_node = -1;
+typedef struct numa_metadata {
+    int node;
+    unsigned int state;
+} numa_metadata_t;
+
+#define NUMA_MEMORY_UNINIT	(0)
+#define NUMA_MEMORY_INIT	(1)
+#define NUMA_INVALID_NODE	(-1)
+
+static numa_metadata_t g_numa_info = {
+    .node = NUMA_INVALID_NODE,
+    .state = NUMA_MEMORY_UNINIT,
+};
 
 #define GUARD_PATTERN (0x8D8D8D8D)
 
@@ -17,6 +29,9 @@ typedef struct numa_mem {
 /* Init the numa memory allocator */
 int init_nmallocator(int node)
 {
+    if (g_numa_info.state == NUMA_MEMORY_INIT) {
+	return 0;
+    }
     int ret = numa_available();
     if (ret < 0 ) {
         goto err;
@@ -26,17 +41,30 @@ int init_nmallocator(int node)
 	ret = -1;
 	goto err;
     }
-    numa_node = node;
+    g_numa_info.state = NUMA_MEMORY_INIT;
+    g_numa_info.node = node;
 err:
     return ret;
+}
+
+/* Uninit numa memory allocator */
+void uninit_nmallocator(void)
+{
+    if (g_numa_info.state == NUMA_MEMORY_INIT) {
+	g_numa_info.state = NUMA_MEMORY_UNINIT;
+	g_numa_info.node = NUMA_INVALID_NODE;
+    }
 }
 
 /* Allocate memory and zero it out */
 void *nmalloc(size_t size)
 {
+    if (g_numa_info.state != NUMA_MEMORY_INIT) {
+	return NULL;
+    }
     size_t total_size = size + sizeof(numa_mem_t);
     
-    void *mem = numa_alloc_onnode(size + total_size, numa_node);
+    void *mem = numa_alloc_onnode(size + total_size, g_numa_info.node);
     if (!mem) {
 	return NULL;
     }

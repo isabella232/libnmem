@@ -6,10 +6,14 @@ int main(int args, char **env)
 {
 	int n;
 	int cpu = atoi(env[1]);
+
+	printf("Init NUMA memory allocator\n");
 	if (init_nmallocator(cpu)) {
 		printf("Invalid numa node specified\n");
 		return -1;
 	}
+
+	printf("Allocate memory from  NUMA memory allocator\n");
         int size = 1024*1024;
         void *mem = nmalloc(size);
         if(mem == NULL){
@@ -32,5 +36,17 @@ int main(int args, char **env)
 	printf("free memory: %p\n", mem);
 	nmfree(mem);
 
+	printf("Uninit  NUMA memory allocator\n");
+	uninit_nmallocator();
+
+	printf("Try to allocate memory from NUMA allocator now\n");
+	mem = nmalloc(size);
+	if (mem == NULL) {
+	    printf("Success: Can't allocate memory as NUMA memory allocator is not init-ed\n");
+	} else {
+	    printf("Failure: Can allocate memory even when NUMA memory allocator is not init-ed\n");
+	    nmfree(mem);
+	}
+	printf("Tests completed\n");
         return 0;
 }
