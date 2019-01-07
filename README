@@ -1,9 +1,3 @@
-Build:
-sudo make clean; sudo make
-
-Linking with the library:
-Use -lnmem as a linker flag to the application
-
 Typical Usage:
 
 init_nmallocator() - call at the start of the program initialization, passing it the numa node
@@ -13,3 +7,20 @@ check the return value of the call before proceeding with memory allocation.
 nmalloc() - zeroed out memory is handed over to the caller for a successful allocation
 
 nmfree() - user memory freed and zeroed out to prevent information leak
+
+*********************************
+Build:
+sudo make clean; sudo make
+
+Linking with the library:
+Use -lnmem as a linker flag to the application (see the sample Makefile in test/)
+
+*********************************
+Build with debug option:
+sudo make debug=1
+
+*********************************
+Unittest:
+sudo make debug=1 unittest
+
+Runs the test code in test/

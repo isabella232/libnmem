@@ -74,6 +74,9 @@ void *nmalloc(size_t size)
     nmem->size = total_size;
     nmem->own = GUARD_PATTERN;
     memset(buffer, 0, size);
+#ifdef NMDEBUG_LOG
+    printf("Alloced:%p, ask size: %ld\n", buffer, size);
+#endif
     return buffer;
 }
 
@@ -93,6 +96,9 @@ void nmfree(void *buffer)
 	assert(0);
 	return;
     }
+#ifdef NMDEBUG_LOG
+    printf("Free:%p, ask size: %ld\n", buffer, size - sizeof(numa_mem_t));
+#endif
     memset(mem, 0, size);
     numa_free(mem, size);
 }

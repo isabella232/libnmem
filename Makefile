@@ -12,6 +12,11 @@ else
 TARGET_PATH = /usr/lib/
 endif
 endif
+
+ifeq ($(debug), 1)
+   CFLAGS += -DNMDEBUG_LOG
+endif
+
 TARGET_HDR_PATH = /usr/include
 SRCS = nmem.c
 LIBHDR = nmem.h
@@ -38,3 +43,6 @@ clean:
 	@echo 'Cleanup'
 	rm -rf *.o
 	rm -rf $(TARGET_PATH)$(TARGET_LIB).*
+
+unittest: all
+	make -C test/ run
